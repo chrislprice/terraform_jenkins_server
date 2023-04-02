@@ -2,7 +2,7 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-#Creates security group for the Jenkins server
+#Creates security group for the Jenkins server. Allows port 22 and 8080 ingress traffic
 resource "aws_security_group" "jenkins-sg" {
   name_prefix = "jenkins-sg"
 
@@ -62,7 +62,7 @@ resource "random_id" "randomidvalue" {
 }
 
 
-3#Create S3 bucket for Jenkins artifacts with the random value from above
+#Create S3 bucket for Jenkins artifacts with the random value from above
 resource "aws_s3_bucket" "jenkins-artifact-bucket" {
   bucket = "jenkins-artifacts-bucket-${random_id.randomidvalue.hex}"
 
