@@ -1,8 +1,10 @@
+#Informs Terraform which cloud provider we're using and which region
 provider "aws" {
   region  = "us-east-1"
 }
 
 #Creates security group for the Jenkins server. Allows port 22 and 8080 ingress traffic
+#Allow connectiviy from any IP address
 resource "aws_security_group" "jenkins-sg" {
   name_prefix = "jenkins-sg"
 
@@ -28,7 +30,8 @@ resource "aws_security_group" "jenkins-sg" {
   }
 }
 
-#Creates AWS EC2 instance with Jenkins installed
+#Creates an EC2 t2.micro instance with Amazon Linux 2 AMI with Jenkins installed
+#User_data command installs Jenkins during server creation
 resource "aws_instance" "jenkins-server" {
   ami           = "ami-04581fbf744a7d11f"
   instance_type = "t2.micro"
@@ -45,22 +48,23 @@ resource "aws_instance" "jenkins-server" {
   sudo systemctl start jenkins
   EOF
 
-  #Assigned the key pair to allow SSH connectivity. Also, attached the jenkins-sg to the instance
+  #Assigns the key pair to allow SSH connectivity. 
+  #Attaches the Jenkins security group to the instance
   vpc_security_group_ids = [aws_security_group.jenkins-sg.id]
   key_name = "WebServerKP"
 
-  #Tag the EC2 with the name "jenkins_server"
+  #Tag the instance with the name jenkins_server"
   tags = {
     Name = "jenkins_server"
   }
 }
 
+#This block of code creates the S3 bucket and block public access
 
-#Create random number for S3 bucket name
+#Creates random number for S3 bucket name since they have to be globally unique
 resource "random_id" "randomidvalue" {
   byte_length = 10
 }
-
 
 #Create S3 bucket for Jenkins artifacts with the random value from above
 resource "aws_s3_bucket" "jenkins-artifact-bucket" {
